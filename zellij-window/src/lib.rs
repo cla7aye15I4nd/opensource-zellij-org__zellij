@@ -62,6 +62,8 @@ mod settings;
 mod sixel;
 mod spawn;
 mod sprites;
+#[cfg(windows)]
+mod taskbar;
 mod terminal;
 #[cfg(test)]
 mod test_server;

@@ -98,6 +98,8 @@ impl RenderSink for ProxySink {
 }
 
 struct Surfaces {
+    #[cfg(windows)]
+    _taskbar: Option<crate::taskbar::TaskbarEntry>,
     window: Window,
     surface: Surface<WindowSurface>,
     context: PossiblyCurrentContext,
@@ -1440,6 +1442,8 @@ impl App {
         };
 
         Ok(Surfaces {
+            #[cfg(windows)]
+            _taskbar: crate::taskbar::describe(&window),
             window,
             surface,
             context,
