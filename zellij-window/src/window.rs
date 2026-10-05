@@ -1343,6 +1343,7 @@ impl App {
             report!("the message could not be drawn: {}", e);
             return;
         }
+        crate::notice::mark_shown();
         self.retained.mark_everything();
         self.schedule_draw();
     }

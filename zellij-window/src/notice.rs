@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use anyhow::{anyhow, Context, Result};
 use zellij_utils::ipc::ExitReason;
 use zellij_utils::structured_render::{FrameBuilder, WireCell};
@@ -32,6 +34,17 @@ pub fn ended(trouble: &str) -> String {
         trouble,
         crate::diagnostics::log_file().display()
     )
+}
+
+static SHOWN: AtomicBool = AtomicBool::new(false);
+
+pub fn mark_shown() {
+    SHOWN.store(true, Ordering::Relaxed);
+}
+
+#[cfg(windows)]
+pub fn was_shown() -> bool {
+    SHOWN.load(Ordering::Relaxed)
 }
 
 pub fn frame(message: &str, rows: usize, cols: usize) -> Vec<u8> {
@@ -96,7 +109,9 @@ pub fn show(message: &str, fonts: FontStack, options: &Options) -> Result<()> {
         .apply_frame(&frame(message, geometry.rows, geometry.cols))
         .map_err(|e| anyhow!("the message could not be drawn: {}", e))?;
     crate::window::run_notice(state, geometry, fonts, options)
-        .context("the message could not be shown in a window")
+        .context("the message could not be shown in a window")?;
+    mark_shown();
+    Ok(())
 }
 
 const NOTICE_ROWS: usize = 10;
