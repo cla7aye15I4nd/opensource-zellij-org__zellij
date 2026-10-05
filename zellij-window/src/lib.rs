@@ -27,6 +27,7 @@ mod graphics;
 mod headless;
 mod host_reply;
 pub mod icns;
+mod identity;
 mod image_io;
 mod input;
 mod kitty;
@@ -88,6 +89,7 @@ use zellij_utils::input::window::StartupMode;
 
 pub fn run(args: WindowArgs, opts: CliArgs) -> Result<()> {
     diagnostics::log_crashes();
+    identity::declare();
     spawn::forget_launching_session();
     open(args, opts)
 }
