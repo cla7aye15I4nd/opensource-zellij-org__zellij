@@ -69,6 +69,8 @@ enum Wake {
     Reconfigured(Settings),
     ThemeMode(HostTerminalThemeMode),
     Finished(Ending),
+    #[cfg(windows)]
+    Focus,
 }
 
 struct ProxySink {
@@ -1323,6 +1325,17 @@ impl App {
         }
     }
 
+    #[cfg(windows)]
+    fn come_forward(&mut self) {
+        let Some(surfaces) = &self.surfaces else {
+            return;
+        };
+        if surfaces.window.is_minimized() == Some(true) {
+            surfaces.window.set_minimized(false);
+        }
+        surfaces.window.focus_window();
+    }
+
     fn close_requested(&mut self) -> bool {
         self.remember();
         self.closing()
@@ -1477,6 +1490,8 @@ impl ApplicationHandler<Wake> for App {
                     event_loop.exit();
                 }
             },
+            #[cfg(windows)]
+            Wake::Focus => self.come_forward(),
         }
     }
 
@@ -1604,6 +1619,15 @@ pub fn run(
 ) -> Result<LoopOutcome> {
     let renderer = Rendering::bring_up(&window.options, fonts, window.startup);
     let windowing = Windowing::bring_up()?;
+    #[cfg(windows)]
+    {
+        let proxy = Mutex::new(windowing.proxy());
+        crate::notify::on_activation(move || {
+            if let Ok(proxy) = proxy.lock() {
+                let _ = proxy.send_event(Wake::Focus);
+            }
+        });
+    }
     let geometry = connection.geometry.clone();
     let role = connection.role;
     let sender = connection.sender.clone();
