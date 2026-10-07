@@ -60,6 +60,8 @@ mod retained;
 mod scene;
 mod screen_buffer;
 mod scroll_animation;
+#[cfg(windows)]
+mod session_end;
 mod settings;
 mod sixel;
 mod spawn;
